@@ -1,0 +1,3 @@
+CREATE INDEX product_name_index IF NOT EXISTS FOR (p:Product) ON (p.name);
+CREATE INDEX product_category_index IF NOT EXISTS FOR (p:Product) ON (p.category);
+CREATE INDEX product_brand_index IF NOT EXISTS FOR (p:Product) ON (p.brand);

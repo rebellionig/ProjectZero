@@ -1,0 +1,6 @@
+// Полнотекстовый поиск по name, category и brand
+CALL db.index.fulltext.createNodeIndex(
+    "productFullTextIndex",
+    ["Product"],
+    ["name", "category", "brand"]
+)

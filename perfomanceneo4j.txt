@@ -1,0 +1,2 @@
+PROFILE MATCH (u:User {id:'user123'})-[:PREFERS]->(p:Product)
+RETURN p.name LIMIT 10

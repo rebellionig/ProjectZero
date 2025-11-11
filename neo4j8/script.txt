@@ -1,0 +1,4 @@
+(User)-[:PURCHASED]->(Product)<-[:PURCHASED]-(User)
+(User)-[:VIEWED]->(Product)
+(User)-[:LIKED]->(Product)
+(Product)-[:BELONGS_TO]->(Category)
