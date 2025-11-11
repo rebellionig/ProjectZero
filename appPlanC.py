@@ -1,3 +1,12 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_mail import Mail, Message
+from neo4j_conn import get_driver, Cart, History, Recommendation, User
+from utils import hash_password, verify_password, create_access_token, decode_token
+import os, uuid, datetime, pyotp
+
 # app.py (auth + API)
 from flask import Flask, request, jsonify
 from neo4j_conn import get_driver
@@ -258,3 +267,32 @@ def set_role():
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
+
+
+@app.route("/api/cart/<user_id>", methods=["GET","POST","DELETE"])
+def cart(user_id):
+    if request.method == "GET":
+        return jsonify(Cart.get_cart(user_id))
+    elif request.method == "POST":
+        data = request.json
+        Cart.add_to_cart(user_id, data["product_id"], data.get("quantity",1))
+        return jsonify({"msg":"added"})
+    else:
+        data = request.json
+        Cart.remove_from_cart(user_id, data["product_id"])
+        return jsonify({"msg":"removed"})
+
+# Пример эндпоинта для рекомендаций
+@app.route("/api/recommend/<user_id>", methods=["GET"])
+def recommend(user_id):
+    limit = int(request.args.get("limit",5))
+    return jsonify(Recommendation.recommend_products(user_id, limit))
+
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)
+
+app = Flask(__name__)
+CORS(app)
+limiter = Limiter(key_func=get_remote_address, app=app)
+mail = Mail(app)
+driver = get_driver()
