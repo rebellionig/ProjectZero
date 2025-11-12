@@ -6,17 +6,8 @@ from flask_mail import Mail, Message
 from neo4j_conn import get_driver, Cart, History, Recommendation, User
 from utils import hash_password, verify_password, create_access_token, decode_token
 import os, uuid, datetime, pyotp
-
-# app.py (auth + API)
-from flask import Flask, request, jsonify
-from neo4j_conn import get_driver
-from utils import hash_password, verify_password, create_access_token, decode_token
-from flask_cors import CORS
 from dotenv import load_dotenv
-import os, uuid, datetime, pyotp
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_mail import Mail, Message
+
 
 load_dotenv()
 
