@@ -3,13 +3,14 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
-from neo4j_conn import (
+from neo4j_conn_Final import (
     get_driver, Cart, History, Recommendation, User,
     driver, log_view, log_like, add_to_wishlist, remove_from_wishlist,
     log_purchase, log_return, get_user_history, recommend_products,
     recommend_products_advanced, get_user_segment, item_based_recommendations,
     seasonal_promotions, manual_adjustment, add_to_cart, remove_from_cart, get_cart, checkout
 )
+
 from cf_engine import CollaborativeFiltering
 from utils import hash_password, verify_password, create_access_token, decode_token
 import os, uuid, datetime, pyotp
