@@ -1,10 +1,12 @@
-# neo4j_conn.py
+# neo4j_conn_Final.py
 from neo4j import GraphDatabase
 import os
 from dotenv import load_dotenv
 
+# ------------------------
+# LOAD ENV
+# ------------------------
 load_dotenv()
-
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "12345678")
@@ -17,9 +19,8 @@ def get_driver():
 def close_driver():
     driver.close()
 
-
 # ------------------------
-# Cart Operations
+# CART OPERATIONS
 # ------------------------
 class Cart:
     @staticmethod
@@ -68,9 +69,8 @@ class Cart:
             """, user_id=user_id)
         return {"status":"success", "message":"Order placed successfully"}
 
-
 # ------------------------
-# User History & Actions
+# USER HISTORY & ACTIONS
 # ------------------------
 class History:
     @staticmethod
@@ -135,9 +135,8 @@ class History:
             """, user_id=user_id)
             return [r.data() for r in res]
 
-
 # ------------------------
-# Recommendations
+# RECOMMENDATIONS
 # ------------------------
 class Recommendation:
     @staticmethod
@@ -151,6 +150,33 @@ class Recommendation:
                 MATCH (other)-[:LIKED]->(rec:Product)
                 WHERE NOT ( (u)-[:PURCHASED]->(rec) OR (u)-[:LIKED]->(rec) )
                 RETURN rec.id AS product_id, rec.name AS name, rec.category AS category, rec.price AS price, count(*) AS score
+                ORDER BY score DESC
+                LIMIT $limit
+            """, user_id=user_id, limit=limit)
+            return [r.data() for r in result]
+
+    @staticmethod
+    def recommend_products_advanced(user_id, limit=5):
+        with driver.session() as s:
+            result = s.run("""
+                MATCH (u:User {id:$user_id})
+                OPTIONAL MATCH (u)-[l:LIKED]->(p1:Product)
+                OPTIONAL MATCH (u)-[w:WISHLISTED]->(p2:Product)
+                OPTIONAL MATCH (u)-[v:VIEWED]->(p3:Product)
+                WITH u, collect(p1) AS liked, collect(p2) AS wish, collect(p3) AS viewed
+                UNWIND liked + wish + viewed AS user_products
+                MATCH (other:User)-[o_l:LIKED|:WISHLISTED]->(user_products)
+                WHERE other.id <> $user_id
+                MATCH (other)-[r:LIKED|:WISHLISTED|:VIEWED]->(rec:Product)
+                WHERE NOT ( (u)-[:PURCHASED]->(rec) OR (u)-[:RETURNED]->(rec) OR rec IN user_products )
+                WITH rec,
+                     sum(
+                         CASE WHEN type(r)="LIKED" THEN 3
+                              WHEN type(r)="WISHLISTED" THEN 2
+                              WHEN type(r)="VIEWED" THEN 1
+                         END
+                     ) AS score
+                RETURN rec.id AS product_id, rec.name AS name, rec.category AS category, rec.price AS price, score
                 ORDER BY score DESC
                 LIMIT $limit
             """, user_id=user_id, limit=limit)
@@ -190,9 +216,8 @@ class Recommendation:
             """)
             return [r.data() for r in result]
 
-
 # ------------------------
-# User segmentation
+# USER SEGMENTATION
 # ------------------------
 class User:
     @staticmethod
